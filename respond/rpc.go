@@ -54,7 +54,8 @@ func Any(w http.ResponseWriter, err error) {
 	if code < codes.Code(len(codeJumpTable)) {
 		codeJumpTable[code](w, err)
 	} else {
-		InternalServerError(w, errors.Errorf("invalid gRPC error code: %#v", err))
+		InternalServerError(w,
+			errors.Errorf("invalid gRPC error code: %#v", err))
 	}
 }
 
