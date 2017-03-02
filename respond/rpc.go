@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -52,6 +53,10 @@ func Any(w http.ResponseWriter, err error) {
 	}
 	code := grpc.Code(err)
 	if code < codes.Code(len(codeJumpTable)) {
+		// TODO: log more codes?
+		if code == codes.Internal {
+			glog.ErrorDepth(1, err)
+		}
 		codeJumpTable[code](w, err)
 	} else {
 		InternalServerError(w,
@@ -63,13 +68,11 @@ func Any(w http.ResponseWriter, err error) {
 type T struct{}
 
 // ContentType implements grpc-ecosystem/grpc-gateway/runtime.Marshaler.
-func (t T) ContentType() string {
-	return "application/json"
-}
+func (t T) ContentType() string { return JSONMIME }
 
 // Marshal implements grpc-ecosystem/grpc-gateway/runtime.Marshaler.
 func (t T) Marshal(v interface{}) ([]byte, error) {
-	// empty.Empty means we don't have a return body.
+	// *empty.Empty means we don't have a response body.
 	_, ok := v.(*empty.Empty)
 	if ok {
 		return nil, nil
@@ -81,7 +84,7 @@ func (t T) Marshal(v interface{}) ([]byte, error) {
 		return nil, errors.Internal(err)
 	}
 
-	// For some odd reason grpc-gateway wraps the stream result in an object
+	// For some odd reason grpc-gateway wraps a stream result in an object
 	// with the key "result".
 	pbm, ok := v.(map[string]proto.Message)
 	if ok {

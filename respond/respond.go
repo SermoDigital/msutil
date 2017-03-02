@@ -16,25 +16,13 @@ const (
 	AccessControl = "Access-Control-Allow-"
 )
 
-const APIVersion = "0.1"
-
-// Response is a response from the SermoCRM API.
+// Response is a response from a SermoCRM microservice.
 type Response struct {
 	// Arbitrary response data.
 	Data interface{} `json:"data,omitempty"`
 
 	// Non-empty if an error occurred.
 	Error string `json:"error,omitempty"`
-}
-
-// Write writes the Response to w. It sends the Response in a similar format,
-// except it adds the API version as well as a unique identifier for the
-// specific API response.
-func (r Response) Write(w http.ResponseWriter) {
-	err := json.MarshalStream(w, r)
-	if err != nil {
-		SystemError(w, nil)
-	}
 }
 
 // http://stackoverflow.com/a/2669766/2967113
@@ -47,7 +35,7 @@ func (r Response) json(w http.ResponseWriter, status int) {
 
 	// Don't be evil.
 	w.Write(dontBeEvil)
-	r.Write(w)
+	json.MarshalStream(w, r)
 }
 
 func OK(w http.ResponseWriter, data interface{}) {
@@ -79,10 +67,11 @@ func Unavailable(w http.ResponseWriter, err error) {
 	(Response{Error: err.Error()}).json(w, http.StatusServiceUnavailable)
 }
 
-// OutOfRange sends an error response with http.StatusRequestedRangeNotSatisfiable.
+// OutOfRange sends an error response with
+// http.StatusRequestedRangeNotSatisfiable.
 func OutOfRange(w http.ResponseWriter, err error) {
-	(Response{Error: err.Error()}).json(
-		w, http.StatusRequestedRangeNotSatisfiable)
+	(Response{Error: err.Error()}).json(w,
+		http.StatusRequestedRangeNotSatisfiable)
 }
 
 // Exhausted sends an error response with http.StatusTooManyRequests.
@@ -95,9 +84,11 @@ func Unimplemented(w http.ResponseWriter, err error) {
 	(Response{Error: err.Error()}).json(w, http.StatusNotImplemented)
 }
 
-// InternalServerError sends an error response with http.StatusInternalServerError.
+// InternalServerError sends an error response with
+// http.StatusInternalServerError.
 func InternalServerError(w http.ResponseWriter, err error) {
-	(Response{Error: "internal server error"}).json(w, http.StatusInternalServerError)
+	(Response{Error: "internal server error"}).json(w,
+		http.StatusInternalServerError)
 }
 
 // NotFound sends an error response with http.StatusNotFound.
