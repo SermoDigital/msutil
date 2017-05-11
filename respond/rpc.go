@@ -39,7 +39,7 @@ var codeJumpTable = [...]ErrFunc{
 	codes.DataLoss:           DataLoss,
 }
 
-func ErrorHandler(_ context.Context, _ runtime.Marshaler,
+func ErrorHandler(_ context.Context, _ *runtime.ServeMux, _ runtime.Marshaler,
 	w http.ResponseWriter, _ *http.Request, err error) {
 	Any(w, err)
 }
